@@ -13,12 +13,6 @@
 using namespace std;
 
 
-
-
-
-
-
-
 int main()
 {
     char action('a');
@@ -60,12 +54,10 @@ int main()
                 cin >> receiver;
                 chatsinmap.showmap(receiver, nickname);
                 cin.ignore();
-                      
-                
+                                      
                 // Запускаем функцию обработки сообщений от клиентов и ответа на эти сообщения
                 chatsinmap.processRequest(receiver, nickname);
                 
-
                 break;
             }
             else break;
@@ -85,7 +77,6 @@ int main()
 
             cout << "User " << nickname << " was created." << endl;
            
-
             break; }
 
         case '3':

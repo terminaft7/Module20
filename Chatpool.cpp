@@ -7,6 +7,7 @@
 #include <cstring>
 #include <arpa/inet.h>
 #include <sys/socket.h>
+#include <errno.h>
 
 #define MESSAGE_BUFFER 4096 // Максимальный размер буфера для приема и передачи
 #define PORT 7777 // Номер порта, который будем использовать для приема и передачи
@@ -95,67 +96,57 @@ void chatpool::processRequest(string receiver, string nickname) {
     // Привяжем сокет
     bind(socket_file_descriptor, (struct sockaddr*)&serveraddress, sizeof(serveraddress));
     cout << "SERVER IS LISTENING THROUGH THE PORT: " << PORT << " WITHIN A LOCAL SYSTEM" << endl;
+    length = sizeof(client);
     message_size = recvfrom(socket_file_descriptor, buffer, sizeof(buffer), 0, (struct sockaddr*)&client, &length);
     buffer[message_size] = '\0';
-    cout << "check1" << endl;
+
+    //Converting receiver from string to char
  	int n = receiver.length();
     char receiver_char[n+1];
     strcpy(receiver_char, receiver.c_str());
         
     if (strcmp(receiver_char, buffer) == 0) {
-        cout << "check2" << endl;
         
-        char answer[2]="1";
-      //WHY CLIENT IS NOT RECEIVING THE ANSWER??????
-        sendto(socket_file_descriptor, answer, MESSAGE_BUFFER, 0, (struct sockaddr*)&client, sizeof(client));   
-       
-           
+    //Converting nickname from string to char    
+        int k;
+        for (k = 0; k < sizeof(nickname); k++) {
+            buffer[k] = nickname[k];
+        }
+    //Sending nickname to client for comparison
+        sendto(socket_file_descriptor, buffer, MESSAGE_BUFFER, 0, (struct sockaddr*)&client, sizeof(client));  
+     
+              
     while (1) {
         // Длина сообщения от клиента
         length = sizeof(client);
         message_size = recvfrom(socket_file_descriptor, buffer, sizeof(buffer), 0, (struct sockaddr*)&client, &length);
         buffer[message_size] = '\0';
         if (strcmp(buffer, end_string) == 0) {
-            cout << "Server is Quitting" << endl;
+            cout << "Client left the chat or is not online. Server is Quitting" << endl;
             close(socket_file_descriptor);
         break;            
-            //exit(0);
         }
-    cout << "check"<<endl;
-   // recvfrom(socket_file_descriptor, buffer, sizeof(buffer), 0, nullptr, nullptr);
-    cout << "Message Received from Client: " << buffer << endl;
-    cout << "check2"<<endl;
-    int b;
-    string s = "";
-    for (b = 0; b < message_size; b++) {
-        s = s + buffer[b];}
-        
-        this->sendmessage(nickname, receiver, s);
 
+        cout << "Message Received from Client: " << buffer << endl;
+     //Saving message in local map container   
+        this->sendmessage(nickname, receiver, buffer);
 
         // ответим клиенту
         cout << "Enter reply message to the client: " << endl;
         cin >> send_buffer;
-
-        int c;
-        string xx = "";
-        for (c = 0; c < message_size; c++) {
-        xx = xx + send_buffer[c];}
-  
-         this->sendmessage(receiver, nickname, xx);
-
-       // strncpy(send_buffer, message.c_str(), MESSAGE_BUFFER);
         sendto(socket_file_descriptor, send_buffer, MESSAGE_BUFFER, 0, (struct sockaddr*)&client, sizeof(client));
-  
+   
+    //Saving message in local map container  
+         this->sendmessage(receiver, nickname, send_buffer);
+
         cout << "Waiting for the Reply from Client..!" << endl;
     }
-
-    // закрываем сокет, завершаем соединение
-    close(socket_file_descriptor);
-    
-}
+    }
     else {cout << "Sorry, the user you want to talk to is not online. Please try later." << endl;
-    strcpy(send_buffer, "0");
-    sendto(socket_file_descriptor, send_buffer, MESSAGE_BUFFER, 0, (struct sockaddr*)&client, sizeof(client));  
+    char answer[2]="0";
+    sendto(socket_file_descriptor, answer, MESSAGE_BUFFER, 0, (struct sockaddr*)&client, sizeof(client));  
+     // закрываем сокет, завершаем соединение
+    close(socket_file_descriptor);
+    return;
     }
 }
