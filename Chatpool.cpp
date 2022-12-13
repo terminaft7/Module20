@@ -59,14 +59,6 @@ void chatpool::showmap(string receiver, string nickname) {
 
 void chatpool::sendmessage(string receiver, string nickname, string message) {
     string complete_message = "from " + nickname + ": " + message;
-    if (receiver == "all") {
-        for (auto& u : this->chatpool_vect) {
-            int x = u.size();
-            u.insert({ x+1, complete_message });
-            break;
-        }
-    }
-
   
     int y = this->checkmap(receiver, nickname);
     if (y == -1) {
